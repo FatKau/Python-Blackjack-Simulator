@@ -9,7 +9,11 @@ both_blackjack_test = False
 bankroll = 1000
 RANKS = [2,3,4,5,6,7,8,9,10,"J","Q","K","Ace"]
 SUITS = ["♠","♥","♦","♣"]
-#---------------------------Nice to have stuff for neatness----------------------------------------
+SLEEP_TIME = 0.3
+
+#----------------------------------Nice to have stuff for neatness-----------------------------------------------
+#------------efficient error checking for numerical inputs, easy to read presentation of lists-------------------
+ 
 def ask_number(prompt,minimum,maximum):
     """Enter a prompt and give the min/max values required. Checks the value given falls in that range, otherwise repeats question"""
     while True:
@@ -25,6 +29,15 @@ def ask_number(prompt,minimum,maximum):
             continue
 
         return number
+
+def say(message):
+    print(message)
+    time.sleep(SLEEP_TIME)
+
+def card_name(card):
+    """Writes one card in an easy to read format, e.g. 10♠"""
+    return f"{card[0]}{card[1]}"
+
 #----------------------------------Deck Generation------------------------------------------------------------
 def deck_generation(number_of_decks):
     """Creates a randomized shoe according to number of decks given"""
@@ -46,8 +59,8 @@ class Hand:
         self.name = name
         self.cards = []
 
-    def add(self, card):
-        self.cards.append(card)
+    def __str__(self):
+        return ", ".join(card_name(card) for card in self.cards)
 
     def deal_card(self):
         """Removes a card from the deck list"""
@@ -82,47 +95,7 @@ class Hand:
             return False
 
 
-
-def hand_value(hand):
-    """Calcuates the value of the hand"""
-    value = 0
-    ace_count = 0
-
-    for card in (hand):
-        if card[0] in ["J","Q","K"]:
-            value = value + 10
-        elif card[0] in ["Ace"]:
-            value = value + 11
-            ace_count = ace_count + 1
-        else:
-            value = value + card[0]
-
-    while value > 21 and ace_count > 0:
-        value = value - 10
-        ace_count = ace_count - 1
-    return value
-
-
-def deal_card(deck,hand):
-    """Removes a card from the deck list"""
-    card = (deck.pop())
-    hand.append(card)
-    return card
-
-def card_name(card):
-    """Writes the name of the card in an easy to read format"""
-    card = f"{card[0]}{card[1]}"
-    return card
-
-def hand_name(hand):
-    """Writes the hand name in a easy to read format"""
-    hand_list = []
-    for card in (hand):
-        hand_list.append(card_name(card))
-    hand_list = ", ".join(hand_list)
-    return hand_list
-
-def check_stake(stake):
+def is_valid_stake(stake):
     """Checks stake value entered is valid"""
     if stake < 0:
         print("Stake cannot be negative")
@@ -137,7 +110,6 @@ def check_stake(stake):
         return False
 
 
-
 def deck_penetration(deck):
     lower_bound = len(deck)*0.65
     upper_bound = len(deck)*0.85
@@ -149,8 +121,6 @@ print(f"Deck penetration is {reshuffle_point}")
 
 def play_round():
   
-    #---------------------------------------------------------------------Initial Deal----------------------------------------------
-
     #Blackjack Test Rigs
     if player_blackjack_test == True:
         shoe.extend([(2,"♠"),("Ace","♠"),(2,"♠"),("K","♠") ])
@@ -159,97 +129,100 @@ def play_round():
     if both_blackjack_test == True:
         shoe.extend([("Ace","♠"),("Ace","♠"),("K","♠"),("K","♠") ])
 
-    player_hand = []
-    dealer_hand = []
-    deal_card(shoe,player_hand)
-    dealer_first_card = deal_card(shoe,dealer_hand)
-    deal_card(shoe,player_hand)
-    dealer_second_card = deal_card(shoe,dealer_hand)
 
-    #Deck length test
+
+#---------------------------------------------------------------------Initial Deal----------------------------------------------
+
+    player_hand = Hand("Player")
+    dealer_hand = Hand("Dealer")
+    player_hand.deal_card()
+    dealer_hand.deal_card()
+    player_hand.deal_card()
+    dealer_hand.deal_card()
+    
+
+    #Shoe length test
     print (f"Cards left in shoe: {len(shoe)}")
 
-    print("Player has",hand_name(player_hand))
+    print(f"Player has {player_hand}")
     time.sleep(0.3)
-    print("Dealer has",card_name(dealer_first_card) ,"face up")
+    print(f"Dealer has {card_name(dealer_hand.cards[0])} face up")
     time.sleep(0.3)
 
 
-    print("Player's hand value is",hand_value(player_hand))
+    print(f"Player's hand value is {player_hand.hand_value()}")
     time.sleep(0.3)
 
     #------------------------------Natural Check----------------------------------
     #Natural Check Player
-    if hand_value(player_hand) == 21 and len(player_hand) == 2:
+    if player_hand.is_blackjack():
         print("Blackjack!")
         time.sleep(0.3)
-        print (f"Dealer's 2nd card is {card_name(dealer_second_card)}. Dealer has", hand_value(dealer_hand))
-        if hand_value(player_hand) > hand_value(dealer_hand):
+        print (f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has {dealer_hand.hand_value()}")
+        if player_hand.hand_value() > dealer_hand.hand_value():
             print("Player wins!")
             return "blackjack"
         
-        if hand_value(player_hand) == hand_value(dealer_hand):
+        if player_hand.hand_value() == dealer_hand.hand_value():
             print("Dealer also has Blackjack! Hand Pushes")
             return "push"
     
     #Natural Check Dealer
-    if hand_value(dealer_hand) == 21 and len(dealer_hand) == 2:
-        print (f"Dealer's 2nd card is {card_name(dealer_second_card)}. Dealer has BlackJack! \nDealer wins!")
+    if dealer_hand.is_blackjack():
+        print (f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has BlackJack! \nDealer wins!")
         time.sleep(0.3)
         return "loss"
 
 
-    while hand_value(player_hand) < 21:
+    while player_hand.hand_value() < 21:
         choice = input("hit or stand? ").lower()
 
     
         if choice in ["hit", "h"]:
-            card_dealt = deal_card(shoe,player_hand)
-            print("You drew", card_name(card_dealt))
+            player_hand.deal_card()
+            print(f"You drew {card_name(player_hand.cards[-1])}")
             time.sleep(0.3)
-            print ("Your hand value is now", hand_value(player_hand))
+            print ("Your hand value is now", player_hand.hand_value())
             time.sleep(0.3)
             
         elif choice in ["stand", "s"]:
             time.sleep(0.3)
-            print("You have stood at", hand_value(player_hand))
+            print("You have stood at", player_hand.hand_value())
             break
 
         else:
             print("I didn't understand your input. type hit or stand")
-
-
         
     #Dealer's turn
 
-    if hand_value(player_hand) < 22:
-        print (f"Dealer's 2nd card is {card_name(dealer_second_card)}. Dealer has {hand_value(dealer_hand)}")
-        while hand_value(dealer_hand) < 17:
-            card_dealt = deal_card(shoe,dealer_hand)
-            print("Dealer draws", card_name(card_dealt))
+    if player_hand.hand_value() < 22:
+        print (f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has {dealer_hand.hand_value()}")
+        while dealer_hand.hand_value() < 17:
+            dealer_hand.deal_card()
+            print(f"Dealer draws {card_name(dealer_hand.cards[-1])}")
             time.sleep(0.3)
-            print("Dealer's hand value is now", hand_value(dealer_hand))
+            print("Dealer's hand value is now", dealer_hand.hand_value())
             time.sleep(0.3)
 
-        if hand_value(dealer_hand) <= 21:
-            print("Dealer stands on", hand_value(dealer_hand))
+        if dealer_hand.hand_value() <= 21:
+            print("Dealer stands on", dealer_hand.hand_value())
             time.sleep(0.3)
 
     #Player vs. Dealer
 
-    if hand_value(player_hand) > 21:
+    if player_hand.hand_value() > 21:
         print("Player busts, dealer wins!")
         return "loss"
 
-    elif hand_value(dealer_hand) > 21:
+    elif dealer_hand.hand_value() > 21:
         print("Dealer busts, Player wins!")
         return "win"
 
-    elif hand_value(player_hand) > hand_value(dealer_hand):
+    elif player_hand.hand_value() > dealer_hand.hand_value():
         print("Player wins!")
         return "win"
 
-    elif hand_value(player_hand) == hand_value(dealer_hand):
+    elif player_hand.hand_value() == dealer_hand.hand_value():
         print("Hands are equal, push")
         return "push"
 
@@ -266,14 +239,13 @@ while play_again in ["yes", "yeah", "y"]:
         print("You have busted!")
         break
 
-
     try:
         stake = float(input("Enter your stake: "))
     except ValueError:
         print("That's not a number")
         continue
 
-    if check_stake(stake):
+    if is_valid_stake(stake):
         result = play_round()
         if result == "blackjack":
             bankroll = bankroll + (stake * 1.5)

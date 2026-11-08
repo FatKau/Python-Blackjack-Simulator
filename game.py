@@ -37,7 +37,7 @@ def play_round(shoe):
     #------------------------------Natural Check----------------------------------
     #Natural Check Player
     if player_hand.is_blackjack():
-        say("Blackjack")
+        say("Blackjack!")
         say (f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has {dealer_hand.hand_value()}")
         if player_hand.hand_value() > dealer_hand.hand_value():
             say("Player wins!")

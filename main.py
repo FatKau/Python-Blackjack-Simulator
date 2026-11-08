@@ -5,7 +5,8 @@ from cards import card_name
 from cards import deck_generation
 from cards import deck_penetration
 
-
+from helpers import say
+from helpers import ask_number
 
 #Tests
 dealer_blackjack_test = False
@@ -14,33 +15,11 @@ both_blackjack_test = False
 
 bankroll = 1000
 
-SLEEP_TIME = 0.3
-
 
 
 #----------------------------------Nice to have stuff for neatness-----------------------------------------------
 #------------efficient error checking for numerical inputs, easy to read presentation of lists-------------------
  
-def ask_number(prompt,minimum,maximum):
-    """Enter a prompt and give the min/max values required. Checks the value given falls in that range, otherwise repeats question"""
-    while True:
-        try:
-            number = int(input(prompt))
-
-        except ValueError:
-            print("Please enter a whole number")
-            continue
-
-        if number < minimum or number > maximum:
-            print(f"Please enter a number between {minimum} and {maximum}")
-            continue
-
-        return number
-
-def say(message):
-    print(message)
-    time.sleep(SLEEP_TIME)
-
 
 number_of_decks = ask_number("Enter number of decks: ",1,100)
 

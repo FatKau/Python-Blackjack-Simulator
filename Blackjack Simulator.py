@@ -62,7 +62,7 @@ class Hand:
     def __str__(self):
         return ", ".join(card_name(card) for card in self.cards)
 
-    def deal_card(self):
+    def deal_card(self, shoe):
         """Removes a card from the deck list"""
         card = (shoe.pop())
         self.cards.append(card)
@@ -95,7 +95,7 @@ class Hand:
             return False
 
 
-def is_valid_stake(stake):
+def is_valid_stake(stake,bankroll):
     """Checks stake value entered is valid"""
     if stake < 0:
         print("Stake cannot be negative")
@@ -135,10 +135,10 @@ def play_round():
 
     player_hand = Hand("Player")
     dealer_hand = Hand("Dealer")
-    player_hand.deal_card()
-    dealer_hand.deal_card()
-    player_hand.deal_card()
-    dealer_hand.deal_card()
+    player_hand.deal_card(shoe)
+    dealer_hand.deal_card(shoe)
+    player_hand.deal_card(shoe)
+    dealer_hand.deal_card(shoe)
     
 
     #Shoe length test
@@ -179,7 +179,7 @@ def play_round():
 
     
         if choice in ["hit", "h"]:
-            player_hand.deal_card()
+            player_hand.deal_card(shoe)
             print(f"You drew {card_name(player_hand.cards[-1])}")
             time.sleep(0.3)
             print ("Your hand value is now", player_hand.hand_value())
@@ -198,7 +198,7 @@ def play_round():
     if player_hand.hand_value() < 22:
         print (f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has {dealer_hand.hand_value()}")
         while dealer_hand.hand_value() < 17:
-            dealer_hand.deal_card()
+            dealer_hand.deal_card(shoe)
             print(f"Dealer draws {card_name(dealer_hand.cards[-1])}")
             time.sleep(0.3)
             print("Dealer's hand value is now", dealer_hand.hand_value())
@@ -245,7 +245,7 @@ while play_again in ["yes", "yeah", "y"]:
         print("That's not a number")
         continue
 
-    if is_valid_stake(stake):
+    if is_valid_stake(stake, bankroll):
         result = play_round()
         if result == "blackjack":
             bankroll = bankroll + (stake * 1.5)

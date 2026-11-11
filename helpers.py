@@ -1,5 +1,5 @@
 import time
-SLEEP_TIME = 0.3
+SLEEP_TIME = 0.5
 def ask_number(prompt,minimum,maximum):
     """Enter a prompt and give the min/max values required. Checks the value given falls in that range, otherwise repeats question"""
     while True:

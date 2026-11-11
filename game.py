@@ -7,15 +7,15 @@ dealer_blackjack_test = False
 player_blackjack_test = False
 both_blackjack_test = False
 
-def play_round(shoe):
+def play_round(shoe,stake,bankroll):
   
     #Blackjack Test Rigs
     if player_blackjack_test == True:
-        shoe.extend([(2,"♠"),("Ace","♠"),(2,"♠"),("K","♠") ])
+        shoe.cards.extend([(2,"♠"),("Ace","♠"),(2,"♠"),("K","♠") ])
     if dealer_blackjack_test == True:
-        shoe.extend([("Ace","♠"),(2,"♠"),("K","♠"),(2,"♠") ])
+        shoe.cards.extend([("Ace","♠"),(2,"♠"),("K","♠"),(2,"♠") ])
     if both_blackjack_test == True:
-        shoe.extend([("Ace","♠"),("Ace","♠"),("K","♠"),("K","♠") ])
+        shoe.cards.extend([("Ace","♠"),("Ace","♠"),("K","♠"),("K","♠") ])
 
 #---------------------------------------------------------------------Initial Deal----------------------------------------------
 
@@ -25,13 +25,12 @@ def play_round(shoe):
     dealer_hand.deal_card(shoe)
     player_hand.deal_card(shoe)
     dealer_hand.deal_card(shoe)
-    
 
     #Shoe length test
-    say(f"Cards left in shoe: {len(shoe)}")
 
     say(f"Player has {player_hand}")
     say(f"Dealer has {card_name(dealer_hand.cards[0])} face up")
+    say(f"Cards left in shoe: {len(shoe.cards)}")
     say(f"Player's hand value is {player_hand.hand_value()}")
 
     #------------------------------Natural Check----------------------------------
@@ -52,27 +51,42 @@ def play_round(shoe):
         say(f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has BlackJack! \nDealer wins!")
         return "loss"
 
+    def double_down(stake,bankroll):
+        if bankroll < stake * 2:
+            say("You don't have enough bankroll to double down")
+            return False
+        answer = input("Would you like to double down? ").lower()
+        return answer in ["y","yes","yea","yeh"]
 
-    while player_hand.hand_value() < 21:
-        choice = input("hit or stand? ").lower()
-
-    
-        if choice in ["hit", "h"]:
-            player_hand.deal_card(shoe)
-            say(f"You drew {card_name(player_hand.cards[-1])}")
-            
-            say(f"Your hand value is now {player_hand.hand_value()}")
-            
-            
-        elif choice in ["stand", "s"]:
-            
-            say(f"You have stood at {player_hand.hand_value()}")
-            break
-
-        else:
-            say("I didn't understand your input. type hit or stand")
         
-    #Dealer's turn
+    if double_down(stake,bankroll):
+        player_hand.deal_card(shoe)
+        say(f"You've doubled down. You drew {card_name(player_hand.cards[-1])}")
+        say(f"Your hand value is now {player_hand.hand_value()}")
+        doubled = True
+
+    else:
+        doubled = False
+        while player_hand.hand_value() < 21:
+            choice = input("hit or stand? ").lower()
+
+        
+            if choice in ["hit", "h"]:
+                player_hand.deal_card(shoe)
+                say(f"You drew {card_name(player_hand.cards[-1])}")
+                
+                say(f"Your hand value is now {player_hand.hand_value()}")
+                
+                
+            elif choice in ["stand", "s"]:
+                
+                say(f"You have stood at {player_hand.hand_value()}")
+                break
+
+            else:
+                say("I didn't understand your input. type hit or stand")
+            
+        #Dealer's turn
 
     if player_hand.hand_value() < 22:
         say (f"Dealer's 2nd card is {card_name(dealer_hand.cards[1])}. Dealer has {dealer_hand.hand_value()}")
@@ -87,23 +101,46 @@ def play_round(shoe):
 
 
     #Player vs. Dealer
+    if doubled:
+        
+        if player_hand.hand_value() > 21:
+            say("Player busts, dealer wins!")
+            return "double loss"
 
-    if player_hand.hand_value() > 21:
-        say("Player busts, dealer wins!")
-        return "loss"
+        elif dealer_hand.hand_value() > 21:
+            say("Dealer busts, Player wins!")
+            return "double win"
 
-    elif dealer_hand.hand_value() > 21:
-        say("Dealer busts, Player wins!")
-        return "win"
+        elif player_hand.hand_value() > dealer_hand.hand_value():
+            say("Player wins!")
+            return "double win"
 
-    elif player_hand.hand_value() > dealer_hand.hand_value():
-        say("Player wins!")
-        return "win"
+        elif player_hand.hand_value() == dealer_hand.hand_value():
+            say("Hands are equal, push")
+            return "push"
 
-    elif player_hand.hand_value() == dealer_hand.hand_value():
-        say("Hands are equal, push")
-        return "push"
+        else:
+            say("Dealer's hand is higher, dealer wins")
+            return "double loss"
 
     else:
-        say("Dealer's hand is higher, dealer wins")
-        return "loss"
+            
+        if player_hand.hand_value() > 21:
+            say("Player busts, dealer wins!")
+            return "loss"
+
+        elif dealer_hand.hand_value() > 21:
+            say("Dealer busts, Player wins!")
+            return "win"
+
+        elif player_hand.hand_value() > dealer_hand.hand_value():
+            say("Player wins!")
+            return "win"
+
+        elif player_hand.hand_value() == dealer_hand.hand_value():
+            say("Hands are equal, push")
+            return "push"
+
+        else:
+            say("Dealer's hand is higher, dealer wins")
+            return "loss"

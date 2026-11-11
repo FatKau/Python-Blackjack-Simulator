@@ -11,7 +11,7 @@ class Hand:
 
     def deal_card(self, shoe):
         """Removes a card from the deck list"""
-        card = (shoe.pop())
+        card = shoe.deal()
         self.cards.append(card)
         return self.cards
         
